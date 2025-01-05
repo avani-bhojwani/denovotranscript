@@ -10,7 +10,7 @@ process ORP_TRANSRATE {
     input:
     tuple val(meta), path(fasta)         // assembly file
     tuple val(meta), path(reads)         // processed reads
-    path reference                       // reference proteins or transcripts fasta
+    path reference                       // optional: reference proteins or transcripts fasta
 
     output:
     path "${fasta.baseName}/"           , emit: transrate_results
@@ -49,6 +49,19 @@ process ORP_TRANSRATE {
 
     cp .command.out transrate.log
     cp -r transrate_results/* ./
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        transrate (from Oyster River Protocol): \$(transrate -v)
+        blast+: \$(blastp -version | grep -oP "blast \\K[^,]*")
+    END_VERSIONS
+    """
+
+    stub:
+    """
+    touch "${fasta.baseName}/"
+    touch "assemblies.csv"
+    touch "transrate.log"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
